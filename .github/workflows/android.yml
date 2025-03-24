@@ -20,12 +20,19 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: 创建Android项目结构
+      run: |
+        mkdir -p android-app/app/src/main/{java/com/klinechart/app,res/layout,res/values,res/mipmap-hdpi,res/mipmap-mdpi,res/mipmap-xhdpi,res/mipmap-xxhdpi,res/mipmap-xxxhdpi}
+        mkdir -p android-app/app/src/main/assets
+        cp client/index.html android-app/app/src/main/assets/
+
     - name: 设置Gradle Wrapper
       run: |
         cd android-app
         mkdir -p gradle/wrapper
         echo 'distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip' > gradle/wrapper/gradle-wrapper.properties
         curl -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v7.5.0/gradle/wrapper/gradle-wrapper.jar
+        curl -o gradlew https://raw.githubusercontent.com/gradle/gradle/v7.5.0/gradlew
         chmod +x gradlew
 
     - name: 生成签名密钥
