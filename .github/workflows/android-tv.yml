@@ -40,6 +40,20 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
         
+    - name: Generate Keystore
+      run: |
+        cd tv-app/android
+        mkdir -p keystore
+        keytool -genkey -v \
+          -keystore keystore/release.keystore \
+          -alias androiddebugkey \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -storepass android \
+          -keypass android \
+          -dname "CN=MT5 Candlechart TV,OU=Android,O=Android,L=Mountain View,S=California,C=US"
+        
     - name: Sync Capacitor
       run: |
         cd tv-app
