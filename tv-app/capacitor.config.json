@@ -6,11 +6,12 @@
     "androidScheme": "https"
   },
   "android": {
+    "minSdkVersion": 22,
     "buildOptions": {
-      "keystorePath": "candlechart.keystore",
-      "keystorePassword": "your_keystore_password",
-      "keystoreAlias": "candlechart",
-      "keystoreAliasPassword": "your_alias_password"
+      "keystorePath": "android/keystore/release.keystore",
+      "keystorePassword": "android",
+      "keystoreAlias": "androiddebugkey",
+      "keystoreAliasPassword": "android"
     }
   }
 }
