@@ -20,9 +20,14 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: 设置Gradle权限
-      run: chmod +x android-app/gradlew
-      
+    - name: 设置Gradle Wrapper
+      run: |
+        cd android-app
+        mkdir -p gradle/wrapper
+        echo 'distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip' > gradle/wrapper/gradle-wrapper.properties
+        curl -o gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v7.5.0/gradle/wrapper/gradle-wrapper.jar
+        chmod +x gradlew
+
     - name: 生成签名密钥
       run: |
         mkdir -p android-app/app/keystore
@@ -40,7 +45,7 @@ jobs:
     - name: 构建Debug APK
       run: |
         cd android-app
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --stacktrace
         
     - name: 构建Release APK
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -50,7 +55,8 @@ jobs:
           -Pandroid.injected.signing.store.file=keystore/release.keystore \
           -Pandroid.injected.signing.store.password=android \
           -Pandroid.injected.signing.key.alias=kline \
-          -Pandroid.injected.signing.key.password=android
+          -Pandroid.injected.signing.key.password=android \
+          --stacktrace
         
     - name: 上传Debug APK
       uses: actions/upload-artifact@v4.3.1
