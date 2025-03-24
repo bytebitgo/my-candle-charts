@@ -1,0 +1,4 @@
+MetaTrader5==5.0.4874
+pandas==2.1.4
+Flask==2.3.3
+pytz==2023.3 

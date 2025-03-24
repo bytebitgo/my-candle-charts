@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>外汇K线图</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .controls-container {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+        }
+        .controls {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            padding: 15px 40px;
+            background-color: rgba(248, 249, 250, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        select, input[type="number"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+        }
+        select {
+            min-width: 150px;
+        }
+        input[type="number"] {
+            width: 100px;
+        }
+        select:hover, input[type="number"]:hover {
+            border-color: #999;
+        }
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #666;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .label {
+            font-weight: bold;
+            color: #333;
+            min-width: 100px;
+            font-size: 16px;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        #chart-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls-container">
+        <div class="controls">
+            <span class="label">交易品种:</span>
+            <select id="symbol-select">
+                {% for symbol in symbols %}
+                <option value="{{ symbol }}">{{ symbol }}</option>
+                {% endfor %}
+            </select>
+            
+            <span class="label">时间周期:</span>
+            <select id="timeframe-select">
+                {% for tf in timeframes %}
+                <option value="{{ tf }}">{{ tf }}</option>
+                {% endfor %}
+            </select>
+
+            <span class="label">K线数量:</span>
+            <input type="number" id="kline-count" value="100" min="50" max="200" step="1">
+
+            <div class="checkbox-container">
+                <input type="checkbox" id="random-count" checked>
+                <span class="label" style="min-width: auto;">随机数量</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="chart-container"></div>
+    
+    <script>
+        var chart = echarts.init(document.getElementById('chart-container'));
+        var symbolSelect = document.getElementById('symbol-select');
+        var timeframeSelect = document.getElementById('timeframe-select');
+        var klineCount = document.getElementById('kline-count');
+        var randomCount = document.getElementById('random-count');
+        
+        // 获取随机K线数量
+        function getRandomKlineCount() {
+            return Math.floor(Math.random() * (130 - 100 + 1)) + 100;
+        }
+
+        // 计算dataZoom的start值
+        function calculateStart(count) {
+            return Math.max(0, Math.round((300 - count) / 300 * 100));
+        }
+        
+        var option = {
+            title: {
+                text: 'K线图',
+                textStyle: {
+                    fontSize: 24
+                },
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross'
+                },
+                formatter: function(params) {
+                    var date = params[0].axisValue;
+                    var candleData = params.find(param => param.seriesName === 'K线');
+                    var volumeData = params.find(param => param.seriesName === '成交量');
+                    
+                    if (!candleData || !candleData.data) {
+                        return date;
+                    }
+                    
+                    return '<div style="font-size:16px;line-height:24px">' +
+                           date + '<br/>' +
+                           '开盘: ' + candleData.data[1].toFixed(5) + '<br/>' +
+                           '收盘: ' + candleData.data[2].toFixed(5) + '<br/>' +
+                           '最低: ' + candleData.data[3].toFixed(5) + '<br/>' +
+                           '最高: ' + candleData.data[4].toFixed(5) + '<br/>' +
+                           '成交量: ' + (volumeData ? volumeData.data : 0) +
+                           '</div>';
+                }
+            },
+            legend: {
+                data: ['K线', '成交量'],
+                top: 30,
+                textStyle: {
+                    fontSize: 16
+                }
+            },
+            axisPointer: {
+                link: {xAxisIndex: 'all'},
+                label: {
+                    backgroundColor: '#777',
+                    fontSize: 16
+                }
+            },
+            grid: [{
+                left: '10%',
+                right: '10%',
+                top: '12%',
+                height: '68%'
+            }, {
+                left: '10%',
+                right: '10%',
+                top: '82%',
+                height: '12%'
+            }],
+            xAxis: [{
+                type: 'category',
+                data: [],
+                scale: true,
+                boundaryGap: false,
+                axisLine: {onZero: false},
+                splitLine: {show: false},
+                splitNumber: 20,
+                axisLabel: {
+                    formatter: function (value) {
+                        return value.split(' ')[1];
+                    },
+                    fontSize: 16
+                }
+            }, {
+                type: 'category',
+                gridIndex: 1,
+                data: [],
+                scale: true,
+                boundaryGap: false,
+                axisLine: {onZero: false},
+                axisTick: {show: false},
+                splitLine: {show: false},
+                axisLabel: {show: false},
+                splitNumber: 20
+            }],
+            yAxis: [{
+                type: 'value',
+                scale: true,
+                splitArea: {
+                    show: true
+                },
+                axisLabel: {
+                    formatter: function (value) {
+                        return value.toFixed(5);
+                    },
+                    fontSize: 16
+                }
+            }, {
+                scale: true,
+                gridIndex: 1,
+                splitNumber: 2,
+                axisLabel: {
+                    show: true,
+                    fontSize: 16
+                },
+                axisLine: {show: true},
+                axisTick: {show: false},
+                splitLine: {show: false}
+            }],
+            dataZoom: [
+                {
+                    type: 'inside',
+                    xAxisIndex: [0, 1],
+                    start: 67,
+                    end: 100
+                },
+                {
+                    show: true,
+                    xAxisIndex: [0, 1],
+                    type: 'slider',
+                    bottom: '2%',
+                    start: 67,
+                    end: 100,
+                    textStyle: {
+                        fontSize: 16
+                    },
+                    labelFormatter: function (value) {
+                        var data = option.xAxis[0].data[Math.floor(value / 100 * option.xAxis[0].data.length)];
+                        if (data) {
+                            return data.split(' ')[1];
+                        }
+                        return '';
+                    }
+                }
+            ],
+            series: [{
+                name: 'K线',
+                type: 'candlestick',
+                data: [],
+                itemStyle: {
+                    color: '#ef232a',
+                    color0: '#14b143',
+                    borderColor: '#ef232a',
+                    borderColor0: '#14b143'
+                }
+            },
+            {
+                name: '成交量',
+                type: 'bar',
+                xAxisIndex: 1,
+                yAxisIndex: 1,
+                data: [],
+                itemStyle: {
+                    color: function(params) {
+                        var data = option.series[0].data[params.dataIndex];
+                        if (data) {
+                            return data[1] <= data[2] ? '#14b143' : '#ef232a';
+                        }
+                        return '#14b143';
+                    }
+                }
+            }]
+        };
+        
+        chart.setOption(option);
+
+        function updateTitle() {
+            var symbol = symbolSelect.value;
+            var timeframe = timeframeSelect.value;
+            var count = randomCount.checked ? getRandomKlineCount() : parseInt(klineCount.value);
+            option.title.text = symbol + ' ' + timeframe + ' K线图 (北京时间) - 显示' + count + '根';
+            chart.setOption(option);
+        }
+
+        function updateData() {
+            var symbol = symbolSelect.value;
+            var timeframe = timeframeSelect.value;
+            var count = randomCount.checked ? getRandomKlineCount() : parseInt(klineCount.value);
+            var start = calculateStart(count);
+            
+            fetch('/get_data?symbol=' + symbol + '&timeframe=' + timeframe)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.error) {
+                        console.error(result.error);
+                        return;
+                    }
+                    
+                    const times = result.data.map(item => item[0]);
+                    const values = result.data.map(item => [item[1], item[2], item[3], item[4], item[5]]);
+                    const volumes = result.data.map(item => item[5]);
+                    
+                    option.xAxis[0].data = times;
+                    option.xAxis[1].data = times;
+                    option.series[0].data = values;
+                    option.series[1].data = volumes;
+                    option.dataZoom[0].start = start;
+                    option.dataZoom[1].start = start;
+                    updateTitle();
+                    chart.setOption(option);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // 监听选择变化
+        symbolSelect.addEventListener('change', updateData);
+        timeframeSelect.addEventListener('change', updateData);
+        klineCount.addEventListener('change', function() {
+            if (!randomCount.checked) {
+                updateData();
+            }
+        });
+        randomCount.addEventListener('change', updateData);
+
+        // 初始更新
+        updateData();
+        
+        // 每分钟更新一次
+        setInterval(updateData, 60000);
+
+        // 窗口大小改变时调整图表大小
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    </script>
+</body>
+</html> 
