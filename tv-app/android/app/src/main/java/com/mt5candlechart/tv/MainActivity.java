@@ -4,12 +4,16 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.WebView;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // 启用SplashScreen
+        SplashScreen.installSplashScreen(this);
+        
         super.onCreate(savedInstanceState);
         
         // 设置全屏显示
