@@ -26,11 +26,14 @@ jobs:
       run: |
         cd tv-app
         npm install
+        npm install -g vite
     
     - name: Build Web App
       run: |
         cd tv-app
         npm run build
+      env:
+        CI: true
     
     - name: Set up JDK 17
       uses: actions/setup-java@v3
