@@ -55,14 +55,99 @@ jobs:
           -storepass android \
           -keypass android \
           -dname "CN=Android Debug,O=Android,C=US"
+
+    - name: Create TV Banner
+      run: |
+        cd tv-app/android/app/src/main/res
+        mkdir -p drawable
+        cat > drawable/tv_banner.xml << 'EOF'
+        <?xml version="1.0" encoding="utf-8"?>
+        <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#000000"/>
+                    <size android:width="320dp" android:height="180dp"/>
+                </shape>
+            </item>
+            <item android:gravity="center">
+                <bitmap
+                    android:src="@mipmap/ic_launcher"
+                    android:gravity="center"/>
+            </item>
+        </layer-list>
+        EOF
           
-    - name: Update Android TV Configuration
+    - name: Create Android TV Manifest
       run: |
         cd tv-app/android/app/src/main
-        # 更新AndroidManifest.xml，添加TV必需的配置
-        sed -i '/<manifest/a \    <uses-feature android:name="android.software.leanback" android:required="true"/>\n    <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>' AndroidManifest.xml
-        sed -i '/<application/a \        android:banner="@drawable/tv_banner"' AndroidManifest.xml
-        sed -i '/<activity/a \            <intent-filter>\n                <action android:name="android.intent.action.MAIN"/>\n                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>\n            </intent-filter>' AndroidManifest.xml
+        cat > AndroidManifest.xml << 'EOF'
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-feature android:name="android.software.leanback" android:required="true" />
+            <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+            
+            <application
+                android:allowBackup="true"
+                android:icon="@mipmap/ic_launcher"
+                android:label="@string/app_name"
+                android:roundIcon="@mipmap/ic_launcher_round"
+                android:supportsRtl="true"
+                android:banner="@drawable/tv_banner"
+                android:theme="@style/AppTheme">
+
+                <activity
+                    android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+                    android:name=".MainActivity"
+                    android:label="@string/title_activity_main"
+                    android:theme="@style/AppTheme.NoActionBarLaunch"
+                    android:launchMode="singleTask"
+                    android:exported="true">
+                    
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                        <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                    </intent-filter>
+
+                </activity>
+
+                <provider
+                    android:name="androidx.core.content.FileProvider"
+                    android:authorities="${applicationId}.fileprovider"
+                    android:exported="false"
+                    android:grantUriPermissions="true">
+                    <meta-data
+                        android:name="android.support.FILE_PROVIDER_PATHS"
+                        android:resource="@xml/file_paths"></meta-data>
+                </provider>
+            </application>
+        </manifest>
+        EOF
+        
+    - name: Update Styles
+      run: |
+        cd tv-app/android/app/src/main/res/values
+        cat > styles.xml << 'EOF'
+        <?xml version="1.0" encoding="utf-8"?>
+        <resources>
+            <style name="AppTheme" parent="@style/Theme.Leanback">
+                <item name="android:windowBackground">@color/background</item>
+                <item name="android:colorPrimary">@color/primary</item>
+                <item name="android:colorPrimaryDark">@color/primary_dark</item>
+                <item name="android:colorAccent">@color/accent</item>
+            </style>
+
+            <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+                <item name="windowActionBar">false</item>
+                <item name="windowNoTitle">true</item>
+                <item name="android:background">@null</item>
+            </style>
+
+            <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+                <item name="android:background">@drawable/splash</item>
+            </style>
+        </resources>
+        EOF
         
     - name: Sync Capacitor
       run: |
@@ -73,7 +158,7 @@ jobs:
       run: |
         cd tv-app/android
         chmod +x gradlew
-        ./gradlew assembleRelease
+        ./gradlew assembleRelease --stacktrace
         
     - name: Verify APK
       run: |
