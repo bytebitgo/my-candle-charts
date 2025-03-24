@@ -2,11 +2,17 @@ name: Android TV App CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+      - master
+      - develop
     tags:
       - 'v*'
   pull_request:
-    branches: [ main ]
+    branches: 
+      - main
+      - master
+      - develop
 
 jobs:
   build:
