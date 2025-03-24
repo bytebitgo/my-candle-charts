@@ -29,17 +29,23 @@ jobs:
         
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
+
+    - name: Install Android TV system image
+      run: |
+        echo "y" | sdkmanager "system-images;android-28;google_apis_playstore;x86_64"
+        echo "no" | avdmanager create avd -n test -k "system-images;android-28;google_apis_playstore;x86_64"
       
     - name: Run Emulator Tests
       uses: reactivecircus/android-emulator-runner@v2
       with:
-        api-level: 30
-        target: android-tv
+        api-level: 28
+        target: google_apis_playstore
         arch: x86_64
-        profile: tv_1080p
+        profile: Nexus 5X
         script: |
           # 等待模拟器启动
           adb wait-for-device
+          sleep 10
           
           # 安装APK
           adb install apk/mt5-candlechart-tv.apk
