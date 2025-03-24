@@ -42,6 +42,11 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
       
+    - name: Install build tools
+      run: |
+        sdkmanager "build-tools;33.0.0"
+        echo "${ANDROID_HOME}/build-tools/33.0.0" >> $GITHUB_PATH
+      
     - name: Generate Release Keystore
       run: |
         cd tv-app/android
@@ -164,7 +169,7 @@ jobs:
       run: |
         cd tv-app/android/app/build/outputs/apk/release
         # 验证APK是否包含必要的TV配置
-        aapt dump badging app-release.apk | grep -q "android.software.leanback"
+        ${ANDROID_HOME}/build-tools/33.0.0/aapt dump badging app-release.apk | grep -q "android.software.leanback"
         if [ $? -ne 0 ]; then
           echo "Error: APK missing required TV feature"
           exit 1
