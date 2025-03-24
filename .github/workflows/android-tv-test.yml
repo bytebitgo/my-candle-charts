@@ -69,16 +69,14 @@ jobs:
           
     - name: Upload Test Screenshots
       if: always()
-      uses: actions/upload-artifact@v2.3.1
+      uses: actions/upload-artifact@v1
       with:
         name: test-screenshots
         path: screenshot.png
         
     - name: Upload Test Logs
       if: failure()
-      uses: actions/upload-artifact@v2.3.1
+      uses: actions/upload-artifact@v1
       with:
         name: test-logs
-        path: |
-          ${{ github.workspace }}/*.log
-          /home/runner/.android/avd/*.log 
+        path: ${{ github.workspace }}/*.log 
