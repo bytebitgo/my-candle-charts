@@ -30,22 +30,45 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
 
-    - name: Install Android TV system image
+    - name: Install Android system image
       run: |
-        echo "y" | sdkmanager "system-images;android-28;google_apis_playstore;x86_64"
-        echo "no" | avdmanager create avd -n test -k "system-images;android-28;google_apis_playstore;x86_64"
+        sdkmanager --install "platform-tools" "platforms;android-28" "emulator"
+        sdkmanager --install "system-images;android-28;default;x86_64"
+        echo "no" | avdmanager create avd --force -n test --abi "x86_64" --package "system-images;android-28;default;x86_64"
       
     - name: Run Emulator Tests
       uses: reactivecircus/android-emulator-runner@v2
       with:
         api-level: 28
-        target: google_apis_playstore
+        target: default
         arch: x86_64
-        profile: Nexus 5X
+        profile: pixel_2
+        emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -memory 2048
+        disable-animations: true
         script: |
           # 等待模拟器启动
           adb wait-for-device
-          sleep 10
+          
+          # 等待系统启动完成
+          timeout=300
+          start_time=$(date +%s)
+          while true; do
+            if adb shell getprop sys.boot_completed 2>&1 | grep -q "1"; then
+              echo "System has finished booting"
+              break
+            fi
+            
+            current_time=$(date +%s)
+            elapsed=$((current_time - start_time))
+            
+            if [ $elapsed -ge $timeout ]; then
+              echo "Timeout waiting for system to boot"
+              exit 1
+            fi
+            
+            echo "Waiting for system to boot... ($elapsed seconds)"
+            sleep 5
+          done
           
           # 安装APK
           adb install apk/mt5-candlechart-tv.apk
