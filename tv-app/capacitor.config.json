@@ -1,0 +1,16 @@
+{
+  "appId": "com.mt5candlechart.tv",
+  "appName": "MT5 K线图",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": "candlechart.keystore",
+      "keystorePassword": "your_keystore_password",
+      "keystoreAlias": "candlechart",
+      "keystoreAliasPassword": "your_alias_password"
+    }
+  }
+}
