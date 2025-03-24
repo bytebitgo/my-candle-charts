@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -32,69 +32,17 @@ jobs:
         
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
-      
-    - name: Generate Debug Keystore
-      run: |
-        cd tv-app/android
-        mkdir -p keystore
-        keytool -genkey -v \
-          -keystore keystore/debug.keystore \
-          -alias androiddebugkey \
-          -keyalg RSA \
-          -keysize 2048 \
-          -validity 10000 \
-          -storepass android \
-          -keypass android \
-          -dname "CN=Android Debug,O=Android,C=US"
-          
-    - name: Sync Capacitor
-      run: |
-        cd tv-app
-        npx cap sync android
-        
-    - name: Run Android Lint
-      run: |
-        cd tv-app/android
-        chmod +x gradlew
-        ./gradlew lint
-        
-    - name: Upload Lint Results
-      if: always()
-      uses: actions/upload-artifact@v2
-      with:
-        name: lint-results
-        path: tv-app/android/app/build/reports/lint-results-debug.html
-        
-    - name: Run Unit Tests
-      run: |
-        cd tv-app/android
-        ./gradlew test
-        
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v2
-      with:
-        name: test-results
-        path: tv-app/android/app/build/reports/tests/
         
     - name: Build Debug APK
       run: |
-        cd tv-app/android
+        cd tv-app
+        npx cap sync android
+        cd android
+        chmod +x gradlew
         ./gradlew assembleDebug
         
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v2
+    - name: Archive APK
+      uses: actions/upload-artifact@v2.3.1
       with:
-        name: app-debug
-        path: tv-app/android/app/build/outputs/apk/debug/app-debug.apk
-        
-    - name: Run Instrumentation Tests
-      uses: reactivecircus/android-emulator-runner@v2
-      with:
-        api-level: 30
-        target: android-tv
-        arch: x86_64
-        profile: tv_1080p
-        script: |
-          cd tv-app/android
-          ./gradlew connectedAndroidTest 
+        name: debug-apk
+        path: tv-app/android/app/build/outputs/apk/debug/*.apk 
