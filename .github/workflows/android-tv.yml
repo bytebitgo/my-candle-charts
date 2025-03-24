@@ -1,18 +1,12 @@
-name: Android TV App CI/CD
+name: Android TV CI/CD
 
 on:
   push:
-    branches: 
-      - main
-      - master
-      - develop
+    branches: [ master ]
     tags:
       - 'v*'
   pull_request:
-    branches: 
-      - main
-      - master
-      - develop
+    branches: [ master ]
 
 jobs:
   build:
@@ -25,70 +19,54 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: 'tv-app/package-lock.json'
-    
+        
     - name: Install Dependencies
       run: |
         cd tv-app
         npm install
-        npm install -g vite
-    
-    - name: Build Web App
+        
+    - name: Build Web
       run: |
         cd tv-app
         npm run build
-      env:
-        CI: true
-    
+        
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
-    
+        
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-    
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-    
-    - name: Generate Keystore
-      run: |
-        cd tv-app/scripts
-        chmod +x generate_keystore.sh
-        ./generate_keystore.sh
-    
+      uses: android-actions/setup-android@v2
+        
     - name: Grant execute permission for gradlew
       run: |
         cd tv-app/android
         chmod +x gradlew
-    
-    - name: Sync Capacitor
-      run: |
-        cd tv-app
-        npx cap sync android
-    
-    - name: Build Android TV App
+        
+    - name: Build Release APK
       run: |
         cd tv-app/android
         ./gradlew assembleRelease
-    
+        
+    - name: Rename APK
+      run: |
+        cd tv-app/android/app/build/outputs/apk/release
+        mv app-release.apk mt5-candlechart-tv.apk
+        
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          tv-app/android/app/build/outputs/apk/release/app-release.apk
+        files: tv-app/android/app/build/outputs/apk/release/mt5-candlechart-tv.apk
         name: Release ${{ github.ref_name }}
+        body: |
+          MT5 K线图 Android TV应用 ${{ github.ref_name }} 版本发布
+          
+          ### 更新内容
+          - 自动构建发布
+          - 支持Android TV
+          - 优化UI交互
         draft: false
         prerelease: false
       env:
