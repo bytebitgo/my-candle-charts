@@ -11,7 +11,11 @@ jobs:
     permissions:
       contents: read
       packages: read
+      actions: read
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
     - name: Download Released APK
       run: |
         mkdir -p apk
@@ -72,7 +76,7 @@ jobs:
           
     - name: Upload Test Screenshots
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@master
       with:
         name: test-screenshots
         path: screenshot.png
@@ -80,7 +84,7 @@ jobs:
         
     - name: Upload Test Logs
       if: failure()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@master
       with:
         name: test-logs
         path: ${{ github.workspace }}/*.log
