@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MT5 K线图</title>
+    <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="controls">
+            <select id="symbol-select" class="tv-focusable">
+                <option value="">选择交易品种</option>
+            </select>
+            <select id="timeframe-select" class="tv-focusable">
+                <option value="M1">1分钟</option>
+                <option value="M5">5分钟</option>
+                <option value="M15">15分钟</option>
+                <option value="H1">1小时</option>
+                <option value="H4">4小时</option>
+                <option value="D1">日线</option>
+            </select>
+            <input type="number" id="kline-count" class="tv-focusable" value="100" min="50" max="200">
+            <label class="tv-focusable">
+                <input type="checkbox" id="random-count"> 随机K线数量
+            </label>
+        </div>
+        <div id="chart-container"></div>
+    </div>
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html> 

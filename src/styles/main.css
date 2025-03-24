@@ -1,0 +1,106 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+    color: #fff;
+}
+
+.app-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.controls-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.controls {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px 40px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.tv-focusable {
+    font-size: 24px;
+    color: #fff;
+    padding: 15px;
+    margin: 5px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tv-focusable:focus {
+    border-color: #00a0ff;
+    transform: scale(1.05);
+    outline: none;
+    box-shadow: 0 0 20px rgba(0, 160, 255, 0.5);
+    background: rgba(0, 160, 255, 0.2);
+}
+
+select.tv-focusable,
+input[type="number"].tv-focusable {
+    min-width: 150px;
+    height: 60px;
+    font-size: 24px;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+input[type="checkbox"].tv-focusable {
+    width: 30px;
+    height: 30px;
+}
+
+#chart-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* TV焦点导航提示 */
+.tv-focus-guide {
+    position: fixed;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 20px;
+    z-index: 1000;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* 加载提示 */
+.loading-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px 40px;
+    border-radius: 12px;
+    font-size: 24px;
+    color: #fff;
+    z-index: 1000;
+} 
