@@ -1,28 +1,18 @@
-name: Android TV Test
+name: Android TV Emulator Test
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
   workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'  # 每天凌晨2点运行
 
 jobs:
-  build:
+  emulator-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        
-    - name: Install Dependencies
+    - name: Download Released APK
       run: |
-        cd tv-app
-        npm install
-        npm install @capacitor/cli @capacitor/core @capacitor/android
+        mkdir -p apk
+        wget -O apk/mt5-candlechart-tv.apk https://github.com/bytebitgo/my-candle-charts/releases/download/v1.0.5/mt5-candlechart-tv.apk
         
     - name: Set up JDK 17
       uses: actions/setup-java@v3
@@ -32,17 +22,63 @@ jobs:
         
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
-        
-    - name: Build Debug APK
-      run: |
-        cd tv-app
-        npx cap sync android
-        cd android
-        chmod +x gradlew
-        ./gradlew assembleDebug
-        
-    - name: Archive APK
+      
+    - name: Run Emulator Tests
+      uses: reactivecircus/android-emulator-runner@v2
+      with:
+        api-level: 30
+        target: android-tv
+        arch: x86_64
+        profile: tv_1080p
+        script: |
+          # 等待模拟器启动
+          adb wait-for-device
+          
+          # 安装APK
+          adb install apk/mt5-candlechart-tv.apk
+          
+          # 获取包名
+          PACKAGE_NAME=$(aapt dump badging apk/mt5-candlechart-tv.apk | grep package | awk -F"'" '/package: name=/{print $2}')
+          
+          # 启动应用
+          MAIN_ACTIVITY=$(aapt dump badging apk/mt5-candlechart-tv.apk | grep launchable-activity | awk -F"'" '/name=/{print $2}')
+          adb shell am start -n "$PACKAGE_NAME/$MAIN_ACTIVITY"
+          
+          # 等待应用启动
+          sleep 30
+          
+          # 截图保存
+          adb shell screencap -p /sdcard/screenshot.png
+          adb pull /sdcard/screenshot.png
+          
+          # 检查应用是否崩溃
+          CRASHES=$(adb shell dumpsys activity processes | grep -i "crash")
+          if [ ! -z "$CRASHES" ]; then
+            echo "Application crashed!"
+            exit 1
+          fi
+          
+          # 检查应用是否响应
+          RESPONSE=$(adb shell "pidof $PACKAGE_NAME")
+          if [ -z "$RESPONSE" ]; then
+            echo "Application not responding!"
+            exit 1
+          fi
+          
+          echo "Application test completed successfully"
+          
+    - name: Upload Test Screenshots
+      if: always()
       uses: actions/upload-artifact@v2.3.1
       with:
-        name: debug-apk
-        path: tv-app/android/app/build/outputs/apk/debug/*.apk 
+        name: test-screenshots
+        path: screenshot.png
+        
+    - name: Upload Test Logs
+      if: failure()
+      uses: actions/upload-artifact@v2.3.1
+      with:
+        name: test-logs
+        path: |
+          ${{ github.workspace }}/*.log
+          /home/runner/.android/avd/*.log 
