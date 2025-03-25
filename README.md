@@ -237,4 +237,57 @@ curl -X GET "http://localhost:8000/api/v1/kline/EURUSD/M1" \
 
 ## 许可证
 
-MIT License 
+MIT License
+
+# Candle Charts API 部署指南
+
+## 前置要求
+
+- Docker
+- Docker Compose
+- SSL证书文件（需要放在 `nginx/ssl` 目录下）
+  - cert.pem（证书文件）
+  - key.pem（私钥文件）
+
+## 目录结构
+```
+.
+├── docker-compose.yml
+├── nginx
+│   ├── Dockerfile
+│   ├── conf.d
+│   │   └── default.conf
+│   └── ssl
+│       ├── cert.pem
+│       └── key.pem
+└── server
+    ├── Dockerfile
+    ├── app.py
+    └── requirements.txt
+```
+
+## 部署步骤
+
+1. 准备SSL证书
+   - 将SSL证书文件 `cert.pem` 和私钥文件 `key.pem` 放入 `nginx/ssl` 目录
+
+2. 启动服务
+   ```bash
+   docker-compose up -d
+   ```
+
+3. 验证服务
+   - 访问 https://你的域名/docs 查看API文档
+   - 访问 http://你的域名 会自动重定向到https
+
+## 服务说明
+
+- Nginx: 443端口(HTTPS)和80端口(HTTP重定向)
+- FastAPI: 内部8000端口
+- Redis: 内部6379端口
+
+## 注意事项
+
+- 请确保SSL证书的正确性和有效性
+- 首次启动时会自动创建docker网络和数据卷
+- Redis数据持久化存储在docker volume中 

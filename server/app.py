@@ -45,7 +45,7 @@ class DataStore:
             self.redis_client = Redis(
                 host=redis_config['host'],
                 port=int(redis_config['port']),
-                password=redis_config.get('password'),
+                password=redis_config.get('password', 'mycandle'),
                 decode_responses=True
             )
         else:
@@ -82,7 +82,11 @@ class DataStore:
 
 # 初始化数据存储
 try:
-    redis_config = config['redis'] if 'redis' in config else None
+    redis_config = config['redis'] if 'redis' in config else {
+        'host': os.getenv('REDIS_HOST', 'redis'),
+        'port': os.getenv('REDIS_PORT', '6379'),
+        'password': os.getenv('REDIS_PASSWORD', 'mycandle')
+    }
     use_redis = bool(redis_config and redis_config.get('host'))
     data_store = DataStore(use_redis=use_redis, redis_config=redis_config)
     print(f"使用{'Redis' if use_redis else '内存'}存储数据")
@@ -164,12 +168,17 @@ async def get_kline_data(
 ):
     """获取K线数据"""
     try:
+        # 添加调试日志
+        print(f"Received request for symbol: {symbol}, timeframe: {timeframe}")
         key = f"kline:{symbol}:{timeframe}"
+        print(f"Looking for key: {key}")
         data = data_store.get(key)
+        print(f"Found data: {data}")
         if not data:
             raise HTTPException(status_code=404, detail="数据未找到")
         return json.loads(data)
     except Exception as e:
+        print(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/symbols")
