@@ -172,36 +172,6 @@
             }
         }
 
-        // 更新UI
-        function updateSymbolCard(symbol, data) {
-            if (!data || !data.data || data.data.length < 2) return;
-            
-            const lastCandle = data.data[data.data.length - 1];
-            const prevCandle = data.data[data.data.length - 2];
-            
-            const priceChange = lastCandle.close - prevCandle.close;
-            const priceChangePercent = (priceChange / prevCandle.close * 100).toFixed(2);
-            
-            const cardHtml = `
-                <div class="symbol-header">
-                    <span class="symbol-name">${symbol}</span>
-                    <span class="${priceChange >= 0 ? 'price-up' : 'price-down'}">
-                        ${lastCandle.close} (${priceChange >= 0 ? '+' : ''}${priceChangePercent}%)
-                    </span>
-                </div>
-                <div>
-                    <div>开盘: ${lastCandle.open}</div>
-                    <div>最高: ${lastCandle.high}</div>
-                    <div>最低: ${lastCandle.low}</div>
-                    <div>成交量: ${lastCandle.volume}</div>
-                    <div>时间: ${lastCandle.time}</div>
-                </div>
-            `;
-
-            const symbolList = document.getElementById('symbolList');
-            symbolList.innerHTML = cardHtml;
-        }
-
         // 初始化图表
         function initChart() {
             if (!myChart) {
@@ -340,7 +310,6 @@
             
             const data = await getKlineData(symbol, timeframe);
             if (data) {
-                updateSymbolCard(symbol, data);
                 updateChart(data);
             }
         }
