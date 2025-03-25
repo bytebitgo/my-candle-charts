@@ -160,16 +160,14 @@ async def update_kline_data(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/v1/kline/{base}/{quote}/{timeframe}")
+@app.get("/api/v1/kline/{symbol}/{timeframe}")
 async def get_kline_data(
-    base: str,
-    quote: str,
+    symbol: str,
     timeframe: str,
     token: TokenData = Depends(verify_token)
 ):
     """获取K线数据"""
     try:
-        symbol = f"{base}/{quote}"
         print(f"Received request for symbol: {symbol}, timeframe: {timeframe}")
         key = f"kline:{symbol}:{timeframe}"
         print(f"Looking for key: {key}")

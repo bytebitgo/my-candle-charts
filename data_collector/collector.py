@@ -226,7 +226,7 @@ class MT5DataCollector:
                 f"{self.server_url}/kline",
                 headers=headers,
                 json=payload,
-                verify=False  # 如果使用自签名证书
+                verify=True  # 使用系统的证书验证
             )
             response.raise_for_status()
             self.logger.info(f"成功发送{symbol} {timeframe}数据到服务器")
