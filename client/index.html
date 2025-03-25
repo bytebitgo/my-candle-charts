@@ -1,347 +1,191 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K线图</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <title>MT5行情数据</title>
     <style>
-        html, body {
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-
-        .controls-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: center;
-            padding: 10px;
-        }
-
-        .controls {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px 30px;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            gap: 20px;
-            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
-        select, input {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            min-width: 120px;
-        }
-
-        label {
-            font-size: 16px;
+        h1 {
             color: #333;
+            text-align: center;
+            margin-bottom: 30px;
         }
-
-        #chart-container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
+        .symbol-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .symbol-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .symbol-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .symbol-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .price-up {
+            color: #2ecc71;
+        }
+        .price-down {
+            color: #e74c3c;
+        }
+        .timeframe-selector {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        select {
+            padding: 8px 15px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
-    <div class="controls-container">
-        <div class="controls">
-            <label>
-                交易品种:
-                <select id="symbolSelect"></select>
-            </label>
-            <label>
-                时间周期:
-                <select id="timeframeSelect">
-                    <option value="M1">1分钟</option>
-                    <option value="M5">5分钟</option>
-                    <option value="M15">15分钟</option>
-                    <option value="M30">30分钟</option>
-                    <option value="H1">1小时</option>
-                </select>
-            </label>
-            <label>
-                K线数量:
-                <input type="number" id="klineCount" value="100" min="50" max="200">
-            </label>
-            <label>
-                <input type="checkbox" id="randomCount">
-                随机数量(100-130)
-            </label>
+    <div class="container">
+        <h1>MT5实时行情</h1>
+        
+        <div class="timeframe-selector">
+            <select id="timeframe">
+                <option value="M1">1分钟</option>
+                <option value="M5">5分钟</option>
+                <option value="M15">15分钟</option>
+                <option value="M30">30分钟</option>
+                <option value="H1" selected>1小时</option>
+            </select>
+        </div>
+
+        <div id="symbolList" class="symbol-list">
+            <!-- 数据将通过JavaScript动态加载 -->
         </div>
     </div>
-    <div id="chart-container"></div>
 
     <script>
-        const API_URL = 'http://your-server-url/api/v1';
-        const API_TOKEN = 'your-api-token';
-
-        let chart = null;
-        let currentSymbol = '';
-        let currentTimeframe = 'M1';
-        let updateTimer = null;
-
-        // 初始化图表
-        function initChart() {
-            chart = echarts.init(document.getElementById('chart-container'));
-            window.addEventListener('resize', () => chart.resize());
-        }
-
-        // 更新图表标题
-        function updateTitle() {
-            const count = document.getElementById('randomCount').checked ? 
-                Math.floor(Math.random() * 31) + 100 : 
-                parseInt(document.getElementById('klineCount').value);
-            
-            return {
-                text: `${currentSymbol} ${currentTimeframe} K线图`,
-                subtext: `显示最新${count}根K线`,
-                left: 'center',
-                top: '20px'
-            };
-        }
-
-        // 获取K线数据
-        async function fetchKlineData() {
+        // 获取可用交易对
+        async function getSymbols() {
             try {
-                const response = await fetch(
-                    `${API_URL}/kline/${currentSymbol}/${currentTimeframe}`,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${API_TOKEN}`
-                        }
+                const response = await fetch('/api/v1/symbols', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
                     }
-                );
-
-                if (!response.ok) {
-                    throw new Error('获取数据失败');
-                }
-
-                const result = await response.json();
-                return result.data;
+                });
+                if (!response.ok) throw new Error('获取交易对失败');
+                return await response.json();
             } catch (error) {
-                console.error('获取数据错误:', error);
+                console.error('Error:', error);
                 return [];
             }
         }
 
-        // 更新图表数据
-        async function updateChart() {
-            const data = await fetchKlineData();
-            if (!data || data.length === 0) return;
-
-            const count = document.getElementById('randomCount').checked ? 
-                Math.floor(Math.random() * 31) + 100 : 
-                parseInt(document.getElementById('klineCount').value);
-
-            const klineData = data.slice(-count).map(item => [
-                item.time,
-                item.open,
-                item.close,
-                item.low,
-                item.high,
-                item.volume
-            ]);
-
-            const option = {
-                title: updateTitle(),
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: {
-                        type: 'cross'
-                    },
-                    formatter: function(params) {
-                        const candlestick = params.find(p => p.seriesName === 'K线');
-                        if (!candlestick) return '';
-                        
-                        const volume = params.find(p => p.seriesName === '成交量');
-                        const color = candlestick.data[1] <= candlestick.data[2] ? '#26A69A' : '#EF5350';
-                        
-                        return [
-                            `<div style="font-size:16px;color:#333;font-weight:bold;margin-bottom:5px">
-                                ${candlestick.name}
-                            </div>`,
-                            `开盘：<span style="color:${color}">${candlestick.data[1]}</span><br/>`,
-                            `收盘：<span style="color:${color}">${candlestick.data[2]}</span><br/>`,
-                            `最低：<span style="color:${color}">${candlestick.data[3]}</span><br/>`,
-                            `最高：<span style="color:${color}">${candlestick.data[4]}</span><br/>`,
-                            `成交量：<span style="color:${color}">${volume ? volume.data[1].toFixed(2) : 0}</span>`
-                        ].join('');
-                    }
-                },
-                legend: {
-                    data: ['K线', '成交量'],
-                    top: '60px'
-                },
-                grid: [{
-                    left: '10%',
-                    right: '10%',
-                    top: '120px',
-                    height: '60%'
-                }, {
-                    left: '10%',
-                    right: '10%',
-                    top: '85%',
-                    height: '15%'
-                }],
-                xAxis: [{
-                    type: 'category',
-                    data: klineData.map(item => item[0]),
-                    scale: true,
-                    boundaryGap: false,
-                    axisLine: { onZero: false },
-                    splitLine: { show: false },
-                    splitNumber: 20
-                }, {
-                    type: 'category',
-                    gridIndex: 1,
-                    data: klineData.map(item => item[0]),
-                    scale: true,
-                    boundaryGap: false,
-                    axisLine: { onZero: false },
-                    axisTick: { show: false },
-                    splitLine: { show: false },
-                    axisLabel: { show: false },
-                    splitNumber: 20
-                }],
-                yAxis: [{
-                    scale: true,
-                    splitArea: {
-                        show: true
-                    }
-                }, {
-                    scale: true,
-                    gridIndex: 1,
-                    splitNumber: 2,
-                    axisLabel: { show: false },
-                    axisLine: { show: false },
-                    axisTick: { show: false },
-                    splitLine: { show: false }
-                }],
-                dataZoom: [{
-                    type: 'inside',
-                    xAxisIndex: [0, 1],
-                    start: 0,
-                    end: 100
-                }, {
-                    show: true,
-                    xAxisIndex: [0, 1],
-                    type: 'slider',
-                    bottom: '2%',
-                    start: 0,
-                    end: 100,
-                    labelFormatter: (value, valueStr) => {
-                        const date = klineData[Math.floor(value / 100 * (klineData.length - 1))];
-                        return date ? date[0].split(' ')[1] : '';
-                    }
-                }],
-                series: [{
-                    name: 'K线',
-                    type: 'candlestick',
-                    data: klineData.map(item => item.slice(1, 5)),
-                    itemStyle: {
-                        color: '#EF5350',
-                        color0: '#26A69A',
-                        borderColor: '#EF5350',
-                        borderColor0: '#26A69A'
-                    }
-                }, {
-                    name: '成交量',
-                    type: 'bar',
-                    xAxisIndex: 1,
-                    yAxisIndex: 1,
-                    data: klineData.map(item => ({
-                        value: [item[0], item[5]],
-                        itemStyle: {
-                            color: item[1] <= item[2] ? '#26A69A' : '#EF5350'
-                        }
-                    }))
-                }]
-            };
-
-            chart.setOption(option, true);
-        }
-
-        // 获取可用交易品种
-        async function fetchSymbols() {
+        // 获取K线数据
+        async function getKlineData(symbol, timeframe) {
             try {
-                const response = await fetch(
-                    `${API_URL}/symbols`,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${API_TOKEN}`
-                        }
+                const response = await fetch(`/api/v1/kline/${symbol}/${timeframe}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
                     }
-                );
-
-                if (!response.ok) {
-                    throw new Error('获取交易品种失败');
-                }
-
-                const symbols = await response.json();
-                const symbolSelect = document.getElementById('symbolSelect');
-                symbolSelect.innerHTML = symbols
-                    .map(symbol => `<option value="${symbol}">${symbol}</option>`)
-                    .join('');
-                
-                currentSymbol = symbols[0];
-                updateChart();
+                });
+                if (!response.ok) throw new Error('获取K线数据失败');
+                return await response.json();
             } catch (error) {
-                console.error('获取交易品种错误:', error);
+                console.error('Error:', error);
+                return null;
             }
         }
 
-        // 初始化事件监听
-        function initEventListeners() {
-            document.getElementById('symbolSelect').addEventListener('change', (e) => {
-                currentSymbol = e.target.value;
-                updateChart();
-            });
+        // 更新UI
+        function updateSymbolCard(symbol, data) {
+            const lastCandle = data.data[data.data.length - 1];
+            const prevCandle = data.data[data.data.length - 2];
+            
+            const priceChange = lastCandle.close - prevCandle.close;
+            const priceChangePercent = (priceChange / prevCandle.close * 100).toFixed(2);
+            
+            const cardHtml = `
+                <div class="symbol-header">
+                    <span class="symbol-name">${symbol}</span>
+                    <span class="${priceChange >= 0 ? 'price-up' : 'price-down'}">
+                        ${lastCandle.close} (${priceChange >= 0 ? '+' : ''}${priceChangePercent}%)
+                    </span>
+                </div>
+                <div>
+                    <div>开盘: ${lastCandle.open}</div>
+                    <div>最高: ${lastCandle.high}</div>
+                    <div>最低: ${lastCandle.low}</div>
+                    <div>成交量: ${lastCandle.volume}</div>
+                    <div>时间: ${lastCandle.time}</div>
+                </div>
+            `;
 
-            document.getElementById('timeframeSelect').addEventListener('change', (e) => {
-                currentTimeframe = e.target.value;
-                updateChart();
-            });
-
-            document.getElementById('klineCount').addEventListener('change', () => {
-                if (!document.getElementById('randomCount').checked) {
-                    updateChart();
-                }
-            });
-
-            document.getElementById('randomCount').addEventListener('change', (e) => {
-                document.getElementById('klineCount').disabled = e.target.checked;
-                updateChart();
-            });
+            let card = document.getElementById(`symbol-${symbol.replace('/', '-')}`);
+            if (!card) {
+                card = document.createElement('div');
+                card.id = `symbol-${symbol.replace('/', '-')}`;
+                card.className = 'symbol-card';
+                document.getElementById('symbolList').appendChild(card);
+            }
+            card.innerHTML = cardHtml;
         }
 
-        // 启动自动更新
-        function startAutoUpdate() {
-            updateTimer = setInterval(updateChart, 1000);  // 每秒更新一次
-        }
-
-        // 初始化应用
+        // 初始化
         async function init() {
-            initChart();
-            initEventListeners();
-            await fetchSymbols();
-            startAutoUpdate();
+            // 获取token（这里应该实现token获取逻辑）
+            if (!localStorage.getItem('token')) {
+                const response = await fetch('/api/v1/token?client_id=web_client', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                localStorage.setItem('token', data.access_token);
+            }
+
+            const symbols = await getSymbols();
+            const timeframeSelect = document.getElementById('timeframe');
+
+            async function updateData() {
+                const selectedTimeframe = timeframeSelect.value;
+                for (const symbol of symbols) {
+                    const data = await getKlineData(symbol, selectedTimeframe);
+                    if (data) {
+                        updateSymbolCard(symbol, data);
+                    }
+                }
+            }
+
+            // 初始更新
+            await updateData();
+
+            // 定时更新
+            setInterval(updateData, 60000);
+
+            // 时间周期切换事件
+            timeframeSelect.addEventListener('change', updateData);
         }
 
+        // 启动应用
         init();
     </script>
 </body>

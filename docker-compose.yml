@@ -12,6 +12,7 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./nginx/ssl:/etc/nginx/ssl
       - ./nginx/logs:/var/log/nginx
+      - ./client:/usr/share/nginx/html/mt
     depends_on:
       - api
     networks:
