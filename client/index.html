@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MT5行情数据</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -84,6 +85,13 @@
             border-radius: 4px;
             display: none;
         }
+        #chartContainer {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -111,6 +119,8 @@
             </div>
         </div>
 
+        <div id="chartContainer"></div>
+
         <div id="symbolList" class="symbol-list">
             <!-- 数据将通过JavaScript动态加载 -->
         </div>
@@ -118,6 +128,7 @@
 
     <script>
         let currentToken = null;
+        let myChart = null;
 
         // 显示错误信息
         function showError(message) {
@@ -225,6 +236,127 @@
             symbolList.innerHTML = cardHtml;
         }
 
+        // 初始化图表
+        function initChart() {
+            if (!myChart) {
+                myChart = echarts.init(document.getElementById('chartContainer'));
+            }
+        }
+
+        // 更新K线图
+        function updateChart(data) {
+            if (!data || !data.data) return;
+            
+            const chartData = data.data.map(item => [
+                item.time,
+                item.open,
+                item.close,
+                item.low,
+                item.high,
+                item.volume
+            ]);
+
+            const option = {
+                title: {
+                    text: document.getElementById('symbolSelect').value,
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross'
+                    },
+                    formatter: function (params) {
+                        const candlestickData = params[0].data;
+                        const volumeData = params[1] ? params[1].data : null;
+                        return [
+                            '时间: ' + params[0].axisValue + '<br/>',
+                            '开盘: ' + candlestickData[1] + '<br/>',
+                            '收盘: ' + candlestickData[2] + '<br/>',
+                            '最低: ' + candlestickData[3] + '<br/>',
+                            '最高: ' + candlestickData[4] + '<br/>',
+                            '成交量: ' + (volumeData || 0)
+                        ].join('');
+                    }
+                },
+                grid: [{
+                    left: '10%',
+                    right: '10%',
+                    height: '60%'
+                }, {
+                    left: '10%',
+                    right: '10%',
+                    top: '75%',
+                    height: '15%'
+                }],
+                xAxis: [{
+                    type: 'category',
+                    data: chartData.map(item => item[0]),
+                    axisLine: { lineStyle: { color: '#8392A5' } }
+                }, {
+                    type: 'category',
+                    gridIndex: 1,
+                    data: chartData.map(item => item[0]),
+                    axisLine: { lineStyle: { color: '#8392A5' } }
+                }],
+                yAxis: [{
+                    scale: true,
+                    splitNumber: 6,
+                    axisLine: { lineStyle: { color: '#8392A5' } },
+                    splitLine: { show: true }
+                }, {
+                    scale: true,
+                    gridIndex: 1,
+                    splitNumber: 2,
+                    axisLabel: {show: false},
+                    axisLine: {show: false},
+                    axisTick: {show: false},
+                    splitLine: {show: false}
+                }],
+                dataZoom: [{
+                    type: 'inside',
+                    xAxisIndex: [0, 1],
+                    start: 0,
+                    end: 100
+                }, {
+                    show: true,
+                    xAxisIndex: [0, 1],
+                    type: 'slider',
+                    bottom: '0%',
+                    start: 0,
+                    end: 100
+                }],
+                series: [{
+                    name: 'K线',
+                    type: 'candlestick',
+                    data: chartData.map(item => [item[1], item[2], item[3], item[4]]),
+                    itemStyle: {
+                        color: '#ef232a',
+                        color0: '#14b143',
+                        borderColor: '#ef232a',
+                        borderColor0: '#14b143'
+                    }
+                }, {
+                    name: '成交量',
+                    type: 'bar',
+                    xAxisIndex: 1,
+                    yAxisIndex: 1,
+                    data: chartData.map((item, index) => {
+                        const volume = item[5];
+                        const isUp = item[2] >= item[1]; // 收盘价 >= 开盘价
+                        return {
+                            value: volume,
+                            itemStyle: {
+                                color: isUp ? '#14b143' : '#ef232a'
+                            }
+                        };
+                    })
+                }]
+            };
+
+            myChart.setOption(option);
+        }
+
         // 更新数据
         async function updateData() {
             const symbol = document.getElementById('symbolSelect').value;
@@ -235,12 +367,14 @@
             const data = await getKlineData(symbol, timeframe);
             if (data) {
                 updateSymbolCard(symbol, data);
+                updateChart(data);
             }
         }
 
         // 初始化
         async function init() {
             try {
+                initChart();
                 await getSymbols();
                 
                 // 绑定事件
@@ -252,6 +386,11 @@
                 
                 // 定时更新
                 setInterval(updateData, 60000);
+
+                // 监听窗口大小变化
+                window.addEventListener('resize', function() {
+                    myChart && myChart.resize();
+                });
             } catch (error) {
                 console.error('初始化失败:', error);
             }

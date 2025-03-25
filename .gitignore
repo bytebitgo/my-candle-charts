@@ -67,3 +67,8 @@ desktop.ini
 *.bak
 *.tmp
 *.temp 
+config.ini
+data_collector/config.ini
+
+data_collector/collector_state.json
+
