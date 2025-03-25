@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MT5行情数据</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="./echarts.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,13 +73,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>MT5实时行情</h1>
+        <h1>国际纳斯达克指数 M1</h1>
         
         <div id="errorMessage" class="error-message"></div>
 
         <div class="controls">
             <div class="control-group">
-                <label for="symbolSelect">交易对</label>
+                <label for="symbolSelect">指数</label>
                 <select id="symbolSelect">
                     <option value="">加载中...</option>
                 </select>
@@ -134,7 +134,7 @@
             try {
                 if (!currentToken) await getToken();
                 
-                const symbols = ['USOILm']; // 目前先使用固定的交易对
+                const symbols = ['USTECm']; // 目前先使用固定的交易对
                 const symbolSelect = document.getElementById('symbolSelect');
                 symbolSelect.innerHTML = symbols
                     .map(symbol => `<option value="${symbol}">${symbol}</option>`)
@@ -191,6 +191,12 @@
                 item.high,
                 item.volume
             ]);
+
+            // 计算默认显示范围
+            const totalBars = chartData.length;
+            const defaultBars = 100;
+            const startPercent = Math.max(0, ((totalBars - defaultBars) / totalBars) * 100);
+            const endPercent = 100;
 
             const option = {
                 backgroundColor: '#000',
@@ -253,8 +259,8 @@
                 dataZoom: [{
                     type: 'inside',
                     xAxisIndex: [0, 1],
-                    start: 0,
-                    end: 100
+                    start: startPercent,
+                    end: endPercent
                 }, {
                     show: true,
                     xAxisIndex: [0, 1],
@@ -268,7 +274,9 @@
                     fillerColor: 'rgba(26, 26, 26, 0.5)',
                     handleStyle: {
                         color: '#333'
-                    }
+                    },
+                    start: startPercent,
+                    end: endPercent
                 }],
                 series: [{
                     name: 'K线',
