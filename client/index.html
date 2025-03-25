@@ -161,14 +161,7 @@
             try {
                 if (!currentToken) await getToken();
                 
-                const response = await fetch('/api/v1/symbols', {
-                    headers: {
-                        'Authorization': 'Bearer ' + currentToken
-                    }
-                });
-                if (!response.ok) throw new Error('获取交易对失败');
-                
-                const symbols = await response.json();
+                const symbols = ['USOILm']; // 目前先使用固定的交易对
                 const symbolSelect = document.getElementById('symbolSelect');
                 symbolSelect.innerHTML = symbols
                     .map(symbol => `<option value="${symbol}">${symbol}</option>`)
@@ -188,7 +181,7 @@
                 
                 const response = await fetch(`/api/v1/kline/${encodeURIComponent(symbol)}/${timeframe}`, {
                     headers: {
-                        'Authorization': 'Bearer ' + currentToken
+                        'Authorization': `Bearer ${currentToken}`
                     }
                 });
                 
@@ -376,6 +369,10 @@
             try {
                 initChart();
                 await getSymbols();
+                
+                // 设置默认值
+                document.getElementById('symbolSelect').value = 'USOILm';
+                document.getElementById('timeframe').value = 'M5';
                 
                 // 绑定事件
                 document.getElementById('symbolSelect').addEventListener('change', updateData);
