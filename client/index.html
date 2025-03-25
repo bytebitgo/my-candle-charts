@@ -487,8 +487,8 @@
                 // 初始更新
                 await updateData();
                 
-                // 定时更新
-                setInterval(updateData, 60000);
+                // 定时更新 - 每30秒更新一次
+                setInterval(updateData, 30000);
 
                 // 监听窗口大小变化
                 window.addEventListener('resize', function() {
