@@ -179,6 +179,74 @@
             }
         }
 
+        // 计算MA
+        function calculateMA(data, period) {
+            const result = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < period - 1) {
+                    result.push('-');
+                    continue;
+                }
+                let sum = 0;
+                for (let j = 0; j < period; j++) {
+                    sum += data[i - j][1]; // 使用收盘价计算
+                }
+                result.push(+(sum / period).toFixed(2));
+            }
+            return result;
+        }
+
+        // 计算MACD
+        function calculateMACD(data, shortPeriod = 12, longPeriod = 26, signalPeriod = 9) {
+            const closePrices = data.map(item => item[2]); // 使用收盘价
+            const shortEMA = [];
+            const longEMA = [];
+            const dif = [];
+            const dea = [];
+            const macd = [];
+
+            // 计算首个EMA值
+            let shortSum = 0;
+            let longSum = 0;
+            for (let i = 0; i < longPeriod; i++) {
+                if (i < shortPeriod) shortSum += closePrices[i];
+                longSum += closePrices[i];
+            }
+            shortEMA[shortPeriod - 1] = shortSum / shortPeriod;
+            longEMA[longPeriod - 1] = longSum / longPeriod;
+
+            // 计算EMA
+            const shortK = 2 / (shortPeriod + 1);
+            const longK = 2 / (longPeriod + 1);
+            const signalK = 2 / (signalPeriod + 1);
+
+            for (let i = shortPeriod; i < closePrices.length; i++) {
+                shortEMA[i] = closePrices[i] * shortK + shortEMA[i-1] * (1 - shortK);
+            }
+            for (let i = longPeriod; i < closePrices.length; i++) {
+                longEMA[i] = closePrices[i] * longK + longEMA[i-1] * (1 - longK);
+                dif[i] = shortEMA[i] - longEMA[i];
+            }
+
+            // 计算DEA和MACD
+            let deaSum = 0;
+            for (let i = longPeriod; i < longPeriod + signalPeriod; i++) {
+                deaSum += dif[i];
+            }
+            dea[longPeriod + signalPeriod - 1] = deaSum / signalPeriod;
+
+            for (let i = longPeriod + signalPeriod; i < closePrices.length; i++) {
+                dea[i] = dif[i] * signalK + dea[i-1] * (1 - signalK);
+                macd[i] = (dif[i] - dea[i]) * 2;
+            }
+
+            return {
+                dif: dif,
+                dea: dea,
+                macd: macd
+            };
+        }
+
         // 更新K线图
         function updateChart(data) {
             if (!data || !data.data) return;
@@ -192,6 +260,11 @@
                 item.volume
             ]);
 
+            // 计算指标
+            const ma50 = calculateMA(chartData, 50);
+            const ma100 = calculateMA(chartData, 100);
+            const macdData = calculateMACD(chartData);
+
             // 计算默认显示范围
             const totalBars = chartData.length;
             const defaultBars = 100;
@@ -203,6 +276,13 @@
                 title: {
                     text: document.getElementById('symbolSelect').value,
                     left: 'center',
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                legend: {
+                    data: ['K线', 'MA50', 'MA100', 'MACD'],
+                    top: '3%',
                     textStyle: {
                         color: '#fff'
                     }
@@ -221,13 +301,18 @@
                 grid: [{
                     left: '3%',
                     right: '3%',
-                    top: '5%',
-                    bottom: '15%',
-                    height: '75%'
+                    top: '8%',
+                    bottom: '30%',
+                    height: '45%'
                 }, {
                     left: '3%',
                     right: '3%',
-                    top: '80%',
+                    top: '65%',
+                    height: '15%'
+                }, {
+                    left: '3%',
+                    right: '3%',
+                    top: '82%',
                     height: '15%'
                 }],
                 xAxis: [{
@@ -238,6 +323,12 @@
                 }, {
                     type: 'category',
                     gridIndex: 1,
+                    data: chartData.map(item => item[0]),
+                    axisLine: { lineStyle: { color: '#333' } },
+                    axisLabel: { show: false }
+                }, {
+                    type: 'category',
+                    gridIndex: 2,
                     data: chartData.map(item => item[0]),
                     axisLine: { lineStyle: { color: '#333' } },
                     axisLabel: { show: false }
@@ -255,15 +346,23 @@
                     axisLine: { show: false },
                     axisTick: { show: false },
                     splitLine: { show: false }
+                }, {
+                    scale: true,
+                    gridIndex: 2,
+                    splitNumber: 2,
+                    axisLabel: { show: true, color: '#fff' },
+                    axisLine: { lineStyle: { color: '#333' } },
+                    axisTick: { show: true },
+                    splitLine: { show: false }
                 }],
                 dataZoom: [{
                     type: 'inside',
-                    xAxisIndex: [0, 1],
+                    xAxisIndex: [0, 1, 2],
                     start: startPercent,
                     end: endPercent
                 }, {
                     show: true,
-                    xAxisIndex: [0, 1],
+                    xAxisIndex: [0, 1, 2],
                     type: 'slider',
                     bottom: '0%',
                     height: '5%',
@@ -289,6 +388,24 @@
                         borderColor0: '#14b143'
                     }
                 }, {
+                    name: 'MA50',
+                    type: 'line',
+                    data: ma50,
+                    smooth: true,
+                    lineStyle: {
+                        opacity: 0.8,
+                        color: '#ffd700'
+                    }
+                }, {
+                    name: 'MA100',
+                    type: 'line',
+                    data: ma100,
+                    smooth: true,
+                    lineStyle: {
+                        opacity: 0.8,
+                        color: '#ff00ff'
+                    }
+                }, {
                     name: '成交量',
                     type: 'bar',
                     xAxisIndex: 1,
@@ -303,6 +420,37 @@
                             }
                         };
                     })
+                }, {
+                    name: 'MACD',
+                    type: 'bar',
+                    xAxisIndex: 2,
+                    yAxisIndex: 2,
+                    data: macdData.macd.map((item, index) => ({
+                        value: item,
+                        itemStyle: {
+                            color: item >= 0 ? '#14b143' : '#ef232a'
+                        }
+                    }))
+                }, {
+                    name: 'DIF',
+                    type: 'line',
+                    xAxisIndex: 2,
+                    yAxisIndex: 2,
+                    data: macdData.dif,
+                    lineStyle: {
+                        opacity: 0.8,
+                        color: '#ffd700'
+                    }
+                }, {
+                    name: 'DEA',
+                    type: 'line',
+                    xAxisIndex: 2,
+                    yAxisIndex: 2,
+                    data: macdData.dea,
+                    lineStyle: {
+                        opacity: 0.8,
+                        color: '#ff00ff'
+                    }
                 }]
             };
 
