@@ -238,23 +238,23 @@
                     borderColor: '#333',
                     textStyle: {
                         color: '#fff',
-                        fontSize: 14
+                        fontSize: 12
                     }
                 },
                 grid: [{
-                    left: '6%',      // 减小左边距
-                    right: '6%',     // 减小右边距
+                    left: '2%',      // 减小左边距
+                    right: '2%',     // 减小右边距
                     top: '3%',       // 减小顶部边距
                     bottom: '30%',
                     height: '50%'
                 }, {
-                    left: '6%',      // 与主图表保持一致
-                    right: '6%',
+                    left: '2%',      // 与主图表保持一致
+                    right: '2%',
                     top: '65%',
                     height: '15%'
                 }, {
-                    left: '6%',      // 与主图表保持一致
-                    right: '6%',
+                    left: '2%',      // 与主图表保持一致
+                    right: '2%',
                     top: '82%',
                     height: '15%'
                 }],
@@ -264,8 +264,8 @@
                     axisLine: { lineStyle: { color: '#333' } },
                     axisLabel: { 
                         color: '#fff',
-                        fontSize: 12,     // 稍微减小字体
-                        margin: 12,       // 减小边距
+                        fontSize: 11,     // 稍微减小字体以适应更小的边距
+                        margin: 8,        // 减小边距
                         rotate: 0,
                         hideOverlap: true // 自动隐藏重叠的标签
                     }
@@ -283,8 +283,8 @@
                     axisLabel: { 
                         show: true,
                         color: '#fff',
-                        fontSize: 12,     // 保持一致的字体大小
-                        margin: 12,       // 保持一致的边距
+                        fontSize: 11,     // 保持一致的字体大小
+                        margin: 8,        // 保持一致的边距
                         hideOverlap: true // 自动隐藏重叠的标签
                     }
                 }],
@@ -294,13 +294,14 @@
                     axisLine: { lineStyle: { color: '#333' } },
                     axisLabel: { 
                         color: '#fff',
-                        fontSize: 12,     // 保持一致的字体大小
-                        margin: 12,       // 保持一致的边距
+                        fontSize: 11,     // 保持一致的字体大小
+                        margin: 8,        // 保持一致的边距
                         formatter: function(value) {
                             return value.toFixed(0);
                         }
                     },
                     splitNumber: 8,       // 优化Y轴分割数量
+                    position: 'right'     // 将价格显示在右侧
                 }, {
                     scale: true,
                     gridIndex: 1,
@@ -316,8 +317,9 @@
                     axisLabel: { 
                         show: true,
                         color: '#fff',
-                        fontSize: 12,     // 保持一致的字体大小
-                        margin: 12        // 保持一致的边距
+                        fontSize: 11,     // 保持一致的字体大小
+                        margin: 8,        // 保持一致的边距
+                        position: 'right'  // 将 MACD 数值显示在右侧
                     },
                     axisLine: { lineStyle: { color: '#333' } },
                     axisTick: { show: true },
@@ -337,7 +339,7 @@
                     borderColor: '#333',
                     textStyle: {
                         color: '#fff',
-                        fontSize: 12      // 保持一致的字体大小
+                        fontSize: 11      // 保持一致的字体大小
                     },
                     fillerColor: 'rgba(26, 26, 26, 0.5)',
                     handleStyle: {
@@ -345,8 +347,8 @@
                     },
                     start: startPercent,
                     end: endPercent,
-                    left: '6%',           // 与图表对齐
-                    right: '6%'           // 与图表对齐
+                    left: '2%',           // 与图表对齐
+                    right: '2%'           // 与图表对齐
                 }],
                 series: [{
                     type: 'candlestick',
