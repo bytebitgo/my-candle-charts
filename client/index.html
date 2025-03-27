@@ -40,6 +40,15 @@
             margin-bottom: 20px;
             font-size: 28px;
             flex: 0 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        h1 span.company-name {
+            font-size: 20px;
+            color: #ffd700;
         }
 
         #chartContainer {
@@ -67,7 +76,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>美国纳斯达克指数 M1</h1>
+        <h1>
+            <span>美国纳斯达克指数 M1</span>
+            <span class="company-name">星智云科技</span>
+        </h1>
         <div id="errorMessage" class="error-message"></div>
         <div id="chartContainer"></div>
     </div>

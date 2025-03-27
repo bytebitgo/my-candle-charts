@@ -1,5 +1,7 @@
 # MT5实时K线图数据服务
 
+![版本](https://img.shields.io/badge/版本-1.0.2-blue.svg)
+
 一个基于MetaTrader5的实时K线数据采集和展示系统，支持多品种、多时间周期的数据采集和可视化。
 
 ## 系统架构
