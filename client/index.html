@@ -242,19 +242,19 @@
                     }
                 },
                 grid: [{
-                    left: '10%',
-                    right: '10%',
-                    top: '5%',
+                    left: '6%',      // 减小左边距
+                    right: '6%',     // 减小右边距
+                    top: '3%',       // 减小顶部边距
                     bottom: '30%',
                     height: '50%'
                 }, {
-                    left: '10%',
-                    right: '10%',
+                    left: '6%',      // 与主图表保持一致
+                    right: '6%',
                     top: '65%',
                     height: '15%'
                 }, {
-                    left: '10%',
-                    right: '10%',
+                    left: '6%',      // 与主图表保持一致
+                    right: '6%',
                     top: '82%',
                     height: '15%'
                 }],
@@ -264,9 +264,10 @@
                     axisLine: { lineStyle: { color: '#333' } },
                     axisLabel: { 
                         color: '#fff',
-                        fontSize: 14,
-                        margin: 20,
-                        rotate: 0
+                        fontSize: 12,     // 稍微减小字体
+                        margin: 12,       // 减小边距
+                        rotate: 0,
+                        hideOverlap: true // 自动隐藏重叠的标签
                     }
                 }, {
                     type: 'category',
@@ -282,8 +283,9 @@
                     axisLabel: { 
                         show: true,
                         color: '#fff',
-                        fontSize: 14,
-                        margin: 20
+                        fontSize: 12,     // 保持一致的字体大小
+                        margin: 12,       // 保持一致的边距
+                        hideOverlap: true // 自动隐藏重叠的标签
                     }
                 }],
                 yAxis: [{
@@ -292,12 +294,13 @@
                     axisLine: { lineStyle: { color: '#333' } },
                     axisLabel: { 
                         color: '#fff',
-                        fontSize: 14,
-                        margin: 20,
+                        fontSize: 12,     // 保持一致的字体大小
+                        margin: 12,       // 保持一致的边距
                         formatter: function(value) {
                             return value.toFixed(0);
                         }
-                    }
+                    },
+                    splitNumber: 8,       // 优化Y轴分割数量
                 }, {
                     scale: true,
                     gridIndex: 1,
@@ -313,8 +316,8 @@
                     axisLabel: { 
                         show: true,
                         color: '#fff',
-                        fontSize: 14,
-                        margin: 20
+                        fontSize: 12,     // 保持一致的字体大小
+                        margin: 12        // 保持一致的边距
                     },
                     axisLine: { lineStyle: { color: '#333' } },
                     axisTick: { show: true },
@@ -334,7 +337,7 @@
                     borderColor: '#333',
                     textStyle: {
                         color: '#fff',
-                        fontSize: 14
+                        fontSize: 12      // 保持一致的字体大小
                     },
                     fillerColor: 'rgba(26, 26, 26, 0.5)',
                     handleStyle: {
@@ -342,8 +345,8 @@
                     },
                     start: startPercent,
                     end: endPercent,
-                    left: '10%',
-                    right: '10%'
+                    left: '6%',           // 与图表对齐
+                    right: '6%'           // 与图表对齐
                 }],
                 series: [{
                     type: 'candlestick',
