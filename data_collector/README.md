@@ -11,8 +11,36 @@
 - 状态保存和恢复
 - 完善的日志记录
 - Docker 容器化部署支持
+- Windows 可执行文件支持
 
-## 使用 Docker（推荐）
+## Windows 可执行文件使用方法（推荐）
+
+### 快速开始
+
+1. 从 [Releases](https://github.com/your-username/mt5-collector/releases) 页面下载最新版本的 `mt5_collector.zip`
+
+2. 解压下载的文件到任意目录
+
+3. 修改 `config.ini` 配置文件：
+```ini
+[server]
+url = https://your-server-url/api/v1
+api_key = your-api-key
+
+[mt5]
+symbols = ["EURUSD", "GBPUSD", "USDJPY"]
+reconnect_delay = 60
+health_check_interval = 30
+```
+
+4. 双击运行 `mt5_collector.exe`
+
+### 注意事项
+- 确保已安装并登录 MetaTrader 5 客户端
+- 程序会在当前目录下创建 `logs` 文件夹存放日志文件
+- 运行时请勿删除配置文件和程序所在目录的其他文件
+
+## 使用 Docker
 
 ### 快速开始
 
@@ -97,14 +125,20 @@ pip install -r requirements.txt
 - 连接尝试次数
 - 最后一次连接时间
 
-## 注意事项
+## 自动构建
 
-1. 确保 MT5 客户端已经登录并保持运行
-2. 检查网络连接是否稳定
-3. 确保服务器 API 密钥正确且未过期
-4. 定期检查日志文件，及时发现并处理异常情况
+### Windows 可执行文件
+本项目使用 GitHub Actions 自动构建 Windows 可执行文件。每次推送到 main 分支或创建新的标签时，都会自动构建并发布新版本。
 
-## Docker 镜像构建
+发布包括：
+- Windows 64位可执行文件 (mt5_collector.exe)
+- 配置文件模板 (config.ini)
+- 使用说明文档 (README.md)
+- 更新日志 (CHANGELOG.md)
+
+您可以在 [Releases](https://github.com/your-username/mt5-collector/releases) 页面下载最新版本。
+
+### Docker 镜像
 
 如果您想自己构建 Docker 镜像，可以按照以下步骤操作：
 
