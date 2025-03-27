@@ -1,0 +1,76 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches: [ master ]
+    tags: [ 'v*.*.*' ]
+    paths:
+      - 'data_collector/**'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'data_collector/**'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: data_collector
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Create version file
+        run: |
+          $version = if ($env:GITHUB_REF -match "refs/tags/v(.*)") { $matches[1] } else { "dev" }
+          echo "version = '$version'" > version.py
+
+      - name: Build executable
+        run: |
+          pyinstaller --clean --onefile `
+            --add-data "config.ini;." `
+            --hidden-import "MetaTrader5" `
+            --hidden-import "pandas" `
+            --hidden-import "pytz" `
+            --hidden-import "requests" `
+            --name "mt5_collector" `
+            collector.py
+
+      - name: Create release package
+        run: |
+          mkdir release
+          copy dist\mt5_collector.exe release\
+          copy config.ini release\
+          copy README.md release\
+          copy CHANGELOG.md release\
+          Compress-Archive -Path release\* -DestinationPath mt5_collector.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mt5-collector-windows
+          path: data_collector/mt5_collector.zip
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: data_collector/mt5_collector.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
