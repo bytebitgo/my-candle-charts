@@ -10,26 +10,19 @@
 - 健康状态监控
 - 状态保存和恢复
 - 完善的日志记录
+- Docker 容器化部署支持
 
-## 系统要求
+## 使用 Docker（推荐）
 
-- Python 3.8 或更高版本
-- MetaTrader 5 客户端
-- 稳定的网络连接
+### 快速开始
 
-## 安装步骤
-
-1. 安装 MetaTrader 5 客户端并登录您的账户
-
-2. 安装所需的 Python 包：
+1. 拉取最新的 Docker 镜像：
 ```bash
-pip install -r requirements.txt
+docker pull ghcr.io/your-username/mt5-collector:latest
 ```
 
-## 配置说明
-
-在运行程序前，需要配置 `config.ini` 文件。配置文件包含以下内容：
-
+2. 准备配置文件：
+创建 `config.ini` 文件，内容如下：
 ```ini
 [server]
 url = https://your-server-url/api/v1
@@ -41,24 +34,57 @@ reconnect_delay = 60
 health_check_interval = 30
 ```
 
+3. 运行容器：
+```bash
+docker run -d \
+  --name mt5-collector \
+  -v $(pwd)/config.ini:/app/config.ini \
+  -v $(pwd)/logs:/app/logs \
+  ghcr.io/your-username/mt5-collector:latest
+```
+
+### 查看日志
+```bash
+docker logs -f mt5-collector
+```
+
+### 停止容器
+```bash
+docker stop mt5-collector
+```
+
+### 重启容器
+```bash
+docker restart mt5-collector
+```
+
+## 手动安装（不推荐）
+
+如果您不想使用 Docker，也可以按照以下步骤手动安装：
+
+### 系统要求
+
+- Python 3.8 或更高版本
+- MetaTrader 5 客户端
+- 稳定的网络连接
+
+### 安装步骤
+
+1. 安装 MetaTrader 5 客户端并登录您的账户
+
+2. 安装所需的 Python 包：
+```bash
+pip install -r requirements.txt
+```
+
+## 配置说明
+
 配置项说明：
 - `url`: 数据接收服务器的 API 地址
 - `api_key`: 访问服务器的 API 密钥
 - `symbols`: 需要采集的交易品种列表
 - `reconnect_delay`: MT5 断开连接后的重连等待时间（秒）
 - `health_check_interval`: 健康检查的时间间隔（秒）
-
-## 运行程序
-
-```bash
-python collector.py
-```
-
-程序启动后会自动：
-1. 连接到 MT5 客户端
-2. 开始采集配置的交易品种数据
-3. 将数据发送到指定服务器
-4. 在出现连接问题时自动重连
 
 ## 日志说明
 
@@ -76,4 +102,45 @@ python collector.py
 1. 确保 MT5 客户端已经登录并保持运行
 2. 检查网络连接是否稳定
 3. 确保服务器 API 密钥正确且未过期
-4. 定期检查日志文件，及时发现并处理异常情况 
+4. 定期检查日志文件，及时发现并处理异常情况
+
+## Docker 镜像构建
+
+如果您想自己构建 Docker 镜像，可以按照以下步骤操作：
+
+1. 克隆代码仓库：
+```bash
+git clone https://github.com/your-username/mt5-collector.git
+cd mt5-collector
+```
+
+2. 构建镜像：
+```bash
+docker build -t mt5-collector .
+```
+
+3. 运行容器：
+```bash
+docker run -d \
+  --name mt5-collector \
+  -v $(pwd)/config.ini:/app/config.ini \
+  -v $(pwd)/logs:/app/logs \
+  mt5-collector
+```
+
+## GitHub Actions 自动构建
+
+本项目使用 GitHub Actions 进行自动化构建和发布。每次推送到 main 分支或创建新的标签时，都会自动构建并发布 Docker 镜像到 GitHub Container Registry。
+
+要使用自动构建的镜像，只需要：
+
+1. 确保您有权限访问 GitHub Container Registry
+2. 使用以下命令拉取镜像：
+```bash
+docker pull ghcr.io/your-username/mt5-collector:latest
+```
+
+您也可以使用特定版本的标签，例如：
+```bash
+docker pull ghcr.io/your-username/mt5-collector:v1.0.0
+``` 
