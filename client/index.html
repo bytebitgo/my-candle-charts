@@ -20,18 +20,22 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 10px;
+            padding: 20px 40px;  /* 增加容器的内边距 */
+            box-sizing: border-box;
+            max-width: 100%;
+            margin: 0 auto;
         }
         h1 {
             color: #fff;
             text-align: center;
-            margin: 10px 0;
-            font-size: 24px;
+            margin: 10px 0 20px 0;  /* 增加标题下方间距 */
+            font-size: 28px;  /* 增大标题字号 */
         }
         #chartContainer {
             flex: 1;
             width: 100%;
             min-height: 0;
+            margin-top: 10px;  /* 增加图表上方间距 */
         }
         .error-message {
             color: #e74c3c;
@@ -223,19 +227,19 @@
                     }
                 },
                 grid: [{
-                    left: '3%',
-                    right: '3%',
+                    left: '8%',      // 增加左边距
+                    right: '8%',     // 增加右边距
                     top: '3%',
                     bottom: '30%',
                     height: '50%'
                 }, {
-                    left: '3%',
-                    right: '3%',
+                    left: '8%',      // 保持与主图表一致
+                    right: '8%',     // 保持与主图表一致
                     top: '65%',
                     height: '15%'
                 }, {
-                    left: '3%',
-                    right: '3%',
+                    left: '8%',      // 保持与主图表一致
+                    right: '8%',     // 保持与主图表一致
                     top: '82%',
                     height: '15%'
                 }],
@@ -243,7 +247,12 @@
                     type: 'category',
                     data: chartData.map(item => item[0]),
                     axisLine: { lineStyle: { color: '#333' } },
-                    axisLabel: { color: '#fff' }
+                    axisLabel: { 
+                        color: '#fff',
+                        fontSize: 12,     // 设置字体大小
+                        margin: 16,       // 增加标签与轴的距离
+                        rotate: 0         // 可以根据需要调整角度
+                    }
                 }, {
                     type: 'category',
                     gridIndex: 1,
@@ -255,13 +264,25 @@
                     gridIndex: 2,
                     data: chartData.map(item => item[0]),
                     axisLine: { lineStyle: { color: '#333' } },
-                    axisLabel: { show: false }
+                    axisLabel: { 
+                        show: true,
+                        color: '#fff',
+                        fontSize: 12,     // 设置字体大小
+                        margin: 16        // 增加标签与轴的距离
+                    }
                 }],
                 yAxis: [{
                     scale: true,
                     splitLine: { lineStyle: { color: '#333' } },
                     axisLine: { lineStyle: { color: '#333' } },
-                    axisLabel: { color: '#fff' }
+                    axisLabel: { 
+                        color: '#fff',
+                        fontSize: 12,     // 设置字体大小
+                        margin: 16,       // 增加标签与轴的距离
+                        formatter: function(value) {
+                            return value.toFixed(0);  // 去除小数位，使显示更紧凑
+                        }
+                    }
                 }, {
                     scale: true,
                     gridIndex: 1,
@@ -274,7 +295,12 @@
                     scale: true,
                     gridIndex: 2,
                     splitNumber: 2,
-                    axisLabel: { show: true, color: '#fff' },
+                    axisLabel: { 
+                        show: true,
+                        color: '#fff',
+                        fontSize: 12,     // 设置字体大小
+                        margin: 16        // 增加标签与轴的距离
+                    },
                     axisLine: { lineStyle: { color: '#333' } },
                     axisTick: { show: true },
                     splitLine: { show: false }
@@ -288,18 +314,21 @@
                     show: true,
                     xAxisIndex: [0, 1, 2],
                     type: 'slider',
-                    bottom: '0%',
+                    bottom: '1%',        // 调整底部滑块位置
                     height: '5%',
                     borderColor: '#333',
                     textStyle: {
-                        color: '#fff'
+                        color: '#fff',
+                        fontSize: 12      // 设置字体大小
                     },
                     fillerColor: 'rgba(26, 26, 26, 0.5)',
                     handleStyle: {
                         color: '#333'
                     },
                     start: startPercent,
-                    end: endPercent
+                    end: endPercent,
+                    left: '8%',          // 与图表对齐
+                    right: '8%'          // 与图表对齐
                 }],
                 series: [{
                     type: 'candlestick',
