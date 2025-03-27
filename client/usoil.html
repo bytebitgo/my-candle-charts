@@ -40,6 +40,22 @@
             margin-bottom: 20px;
             font-size: 28px;
             flex: 0 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        h1 span.index-name {
+            text-align: center;
+        }
+
+        h1 span.company-name {
+            font-size: 20px;
+            color: #ffd700;
+            position: absolute;
+            right: 20px;
         }
 
         #chartContainer {
@@ -67,7 +83,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>原油 M1</h1>
+        <h1>
+            <span class="index-name">美国原油期货 M1</span>
+            <span class="company-name">星智云科技</span>
+        </h1>
         <div id="errorMessage" class="error-message"></div>
         <div id="chartContainer"></div>
     </div>
